@@ -1,0 +1,7 @@
+Simple stand-alone marker instrumentation.
+
+Enable at compile time with appropriate defines, enable at runtime with
+environment variables.
+
+Right now it only really implements gem5 instrumentation, but the intention
+is to extend it to faciliate instrumentation with other infrastructure.
