@@ -1,5 +1,5 @@
-#include "marker.h"
 #include <stdio.h>
+#include <marker_stub.h>
 
 int main()
 {

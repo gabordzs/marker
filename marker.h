@@ -46,8 +46,8 @@
  *
  * Instrumentation is conditionalized by ARM_MARKERS and GEM5_MARKERS
  * at compile time and ARM_MARKER and GEM5_MARKER environment variables
- * at runtime.  If GEM5_MARKERS are being used, application will currently 
- * have to link to gem5/util/m5/libm5.a (and have acces sto the m5op.h 
+ * at runtime.  If GEM5_MARKERS are being used, application will currently
+ * have to link to gem5/util/m5/libm5.a (and have acces sto the m5op.h
  * include file)
  *
  * MARKER_INIT should be called before calling any of the subsequent
@@ -61,8 +61,6 @@
 extern "C" {
 #endif
 
-/* enablement compiletime flag */
-#ifdef ARM_MARKERS
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -72,33 +70,33 @@ int _GEM5_MARKER = 0;
 
 #ifdef GEM5_MARKERS
 /* Ugly, but better than having to find gem5 and hope library is built */
-inline void m5_checkpoint2(uint64_t x, uint64_t y) {
-	asm (".inst 0xff430110;");	
+inline void m5_checkpoint(uint64_t x, uint64_t y) {
+	asm (".inst 0xff430110;");
 };
 
-inline void m5_exit(uint64_t x) 
+inline void m5_exit(uint64_t x)
 {
 	asm(".inst 0xff210110;");
 }
 
-inline void m5_reset_stats(uint64_t x, uint64_t y) 
+inline void m5_reset_stats(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff400110;");	
+	asm (".inst 0xff400110;");
 }
 
-inline void m5_dump_stats(uint64_t x, uint64_t y) 
+inline void m5_dump_stats(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff410110;");	
+	asm (".inst 0xff410110;");
 }
 
-inline void m5_work_begin(uint64_t x, uint64_t y) 
+inline void m5_work_begin(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff5a0110;");	
+	asm (".inst 0xff5a0110;");
 }
 
-inline void m5_work_end(uint64_t x, uint64_t y) 
+inline void m5_work_end(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff5b0110;");	
+	asm (".inst 0xff5b0110;");
 }
 
 #else
@@ -120,7 +118,7 @@ void m5_work_end(uint64_t x, uint64_t y) {}
 
 #define MARKER_START \
 	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
-		m5_checkpoint2(0,0); \
+		m5_checkpoint(0,0); \
 		m5_reset_stats(0,0); \
 	}
 #define MARKER_STOP \
@@ -140,19 +138,6 @@ void m5_work_end(uint64_t x, uint64_t y) {}
 	if(_ARM_MARKER > x) { \
 		fprintf(stderr, "==MARKER INFO (%d)== %s\n", x, y); \
 	}
-#else /* ARM_MARKERS */
-#define MARKER_INIT do { } while (0)
-#define MARKER_START do { if (0) fprintf(stderr, "start\n"); } while (0)
-#define MARKER_STOP  do { if (0) fprintf(stderr, "stop\n"); } while (0)
-#define MARKER_BEGIN(x,y) do \
-		{ if (0) fprintf(stderr, "work begin %d,%d\n",x,y); } while (0)
-#define MARKER_END(x,y) do \
-		{ if (0) fprintf(stderr, "work stop %d,%d\n",x,y); } while (0)
-#define MARKER_INFO(x,y) do \
-	{ if(0) fprintf(stderr, "==MARKER INFO (%d)== %s\n", x, y); \
-	} while(0)
-
-#endif /* ARM_MARKERS */
 
 #ifdef __cplusplus
 }

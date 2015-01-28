@@ -1,15 +1,25 @@
 CC=gcc
-CFLAGS=-Wall -I. -DARM_MARKERS -DGEM5_MARKERS
+CFLAGS=-Wall -I.
 LDFLAGS=
-DEPS = marker.h
-OBJ = test.o
+DEPS=marker_stub.h marker.h
+OBJ=test.o
+SRC=test.c
+TESTS=marker_no_test marker_gem5_test marker_arm_test
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-marker_test: $(OBJ)
-	gcc -o $@ $^ $(CFLAGS) $(LDFLAGS)
+all: $(TESTS)
+
+marker_no_test: $(DEPS) $(SRC)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
+marker_arm_test: $(DEPS) $(SRC)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -DARM_MARKERS
+
+marker_gem5_test: $(DEPS) $(SRC)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -DARM_MARKERS -DGEM5_MARKERS
 
 clean:
 	rm -f *.o
-	rm -f marker_test
+	rm -f $(TESTS)
