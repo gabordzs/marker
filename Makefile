@@ -20,6 +20,9 @@ marker_arm_test: $(DEPS) $(SRC)
 marker_gem5_test: $(DEPS) $(SRC)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS) -DARM_MARKERS -DGEM5_MARKERS
 
+install:
+	sudo cp marker.h /usr/include
+
 clean:
 	rm -f *.o
 	rm -f $(TESTS)
