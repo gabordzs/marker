@@ -67,6 +67,12 @@ extern "C" {
 
 int _ARM_MARKER = 0;
 int _GEM5_MARKER = 0;
+int _GEM5_EXIT_END = 0;
+int _GEM5_CHCK_DELAY = 0;
+int _GEM5_CHCK_PERIOD = 0;
+int _GEM5_STAT_DELAY = 0;
+int _GEM5_STAT_PERIOD = 0;
+
 
 #ifdef GEM5_MARKERS
 /* Ugly, but better than having to find gem5 and hope library is built */
@@ -84,9 +90,9 @@ inline void m5_reset_stats(uint64_t x, uint64_t y)
 	asm (".inst 0xff400110;");
 }
 
-inline void m5_dump_stats(uint64_t x, uint64_t y)
+inline void m5_dumpreset_stats(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff410110;");
+	asm (".inst 0xff420110;");
 }
 
 inline void m5_work_begin(uint64_t x, uint64_t y)
@@ -102,36 +108,56 @@ inline void m5_work_end(uint64_t x, uint64_t y)
 #else
 void m5_checkpoint(uint64_t x, uint64_t y) {}
 void m5_exit(uint64_t x) {}
-void m5_reset_stats(uint64_t x, uint64_t y) {}
+void m5_dumpreset_stats(uint64_t x, uint64_t y) {}
 void m5_dump_stats(uint64_t x, uint64_t y) {}
 void m5_work_begin(uint64_t x, uint64_t y) {}
 void m5_work_end(uint64_t x, uint64_t y) {}
 #endif /* GEM5_MARKERS */
 
+/* bit definitions for gem5 modes */
+#define GEM5_DISABLED 0
+#define GEM5_STAT     1
+#define GEM5_CHCK     2
+#define GEM5_EXIT     4
+#define GEM5_WORK     16
+
+inline int env2int(const char *name)
+{
+	const char *val = getenv(name);
+	if(val) {
+		return strtol(val, NULL, 0);
+	}
+	return 0;
+}
 
 #define MARKER_INIT { \
-	const char *am = getenv("ARM_MARKER"); \
-	const char *gm = getenv("GEM5_MARKER"); \
-	if(am) _ARM_MARKER = strtol(am, NULL, 0); \
-	if(gm) _GEM5_MARKER = strtol(gm, NULL, 0); \
+	_ARM_MARKER = env2int("ARM_MARKER"); \
+	_GEM5_MARKER = env2int("GEM5_MARKER"); \
+	_GEM5_CHCK_DELAY = env2int("GEM5_CHECK_DELAY"); \
+	_GEM5_CHCK_PERIOD = env2int("GEM5_CHECK_PERIOD"); \
+	_GEM5_STAT_DELAY = env2int("GEM5_STAT_DELAY"); \
+	_GEM5_STAT_PERIOD = env2int("GEM5_STAT_PERIOD"); \
 }
 
 #define MARKER_START \
 	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
-		m5_checkpoint(0,0); \
-		m5_reset_stats(0,0); \
+		if(_GEM5_MARKER & GEM5_CHCK) \
+			m5_checkpoint(_GEM5_CHCK_DELAY,_GEM5_CHCK_PERIOD); \
+		if(_GEM5_MARKER & GEM5_STAT) \
+			m5_dumpreset_stats(_GEM5_STAT_DELAY,_GEM5_STAT_PERIOD); \
 	}
 #define MARKER_STOP \
 	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
-		m5_dump_stats(0,0); \
-		m5_exit(0); \
+		if(_GEM5_MARKER & GEM5_STAT) m5_dumpreset_stats(0,0); \
+		if(_GEM5_MARKER & GEM5_EXIT) m5_exit(0); \
+		if(_GEM5_MARKER & GEM5_CHCK) m5_checkpoint(0,0); \
 	}
 #define MARKER_BEGIN(x, y) \
-	if((_ARM_MARKER > x)&&(_GEM5_MARKER > 0)) { \
+	if((_ARM_MARKER > x)&&(_GEM5_MARKER > GEM5_WORK)) { \
 		m5_work_begin(x,y); \
 	}
 #define MARKER_END(x, y) \
-	if((_ARM_MARKER > x)&&(_GEM5_MARKER > 0)) { \
+	if((_ARM_MARKER > x)&&(_GEM5_MARKER > GEM5_WORK)) { \
 		m5_work_end(x,y); \
 	}
 #define MARKER_INFO(x,y) \
