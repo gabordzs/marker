@@ -7,14 +7,14 @@ int main()
 
     printf("Hello Squidboy\n");
 
-    MARKER_START;
+    MARKER_START(0);
     printf("Outer Loop\n");
     MARKER_BEGIN(2,1);
     printf("Do Work\n");
     MARKER_INFO(3,"work");
     MARKER_END(2,1);
     printf("Exiting inner loop\n");
-    MARKER_STOP;
+    MARKER_STOP(0);
 
     return 0;
 }

@@ -150,21 +150,22 @@ inline int env2int(const char *name)
 	_GEM5_STAT_PERIOD = env2int("GEM5_STAT_PERIOD"); \
 }
 
-#define MARKER_START \
-	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
+#define MARKER_START(rank) \
+	if((rank==0)&&(_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
 		if(_GEM5_MARKER & GEM5_CHCK) { \
 			if(_GEM5_MARKER & GEM5_EXIT) \
 				m5_exit(5); \
 			m5_checkpoint(_GEM5_CHCK_DELAY,_GEM5_CHCK_PERIOD); \
-		if(_GEM5_MARKER & GEM5_STAT) {
-			if(_GEM5_STAT_DELAY||_GEM5_STAT_PERIOD)
+		} \
+		if(_GEM5_MARKER & GEM5_STAT) { \
+			if(_GEM5_STAT_DELAY||_GEM5_STAT_PERIOD) \
 				m5_dumpreset_stats(_GEM5_STAT_DELAY,_GEM5_STAT_PERIOD); \
-			else
-				m5_reset_stats(0,0);
-		}
+			else \
+				m5_reset_stats(0,0); \
+		} \
 	}
-#define MARKER_STOP \
-	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
+#define MARKER_STOP(rank) \
+	if((rank==0)&&(_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
 		if(_GEM5_MARKER & GEM5_STAT) m5_dumpreset_stats(0,0); \
 		if(_GEM5_MARKER & GEM5_EXIT) m5_exit(0); \
 		if(_GEM5_MARKER & GEM5_CHCK) m5_checkpoint(0,0); \
