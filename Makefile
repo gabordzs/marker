@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -I.
+CFLAGS=-O3 -Wall -I.
 LDFLAGS=
 DEPS=marker_stub.h marker.h
 OBJ=test.o

@@ -76,38 +76,49 @@ int _GEM5_STAT_PERIOD = 0;
 
 #ifdef GEM5_MARKERS
 /* Ugly, but better than having to find gem5 and hope library is built */
-inline void m5_checkpoint(uint64_t x, uint64_t y) {
-	asm (".inst 0xff430110;");
+static void m5_checkpoint(uint64_t x, uint64_t y) {
+	register uint64_t x0 asm("x0") = x;
+	register uint64_t x1 asm("x1") = y;
+	asm volatile (".inst 0xff430110;":: "r" (x0), "r" (x1));
 };
 
-inline void m5_exit(uint64_t x)
+static __attribute__((optimize("O0"))) void m5_exit(uint64_t x)
 {
-	asm(".inst 0xff210110;");
+	register uint64_t x0 asm("x0") = x;
+	asm volatile (".inst 0xff210110;":: "r" (x0));
 }
 
-inline void m5_reset_stats(uint64_t x, uint64_t y)
+static __attribute__((optimize("O0"))) void m5_reset_stats(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff400110;");
+	register uint64_t x0 asm("x0") = x;
+	register uint64_t x1 asm("x1") = y;
+	asm volatile (".inst 0xff400110;":: "r" (x0), "r" (x1));
 }
 
-inline void m5_dumpreset_stats(uint64_t x, uint64_t y)
+static __attribute__((optimize("O0"))) void m5_dumpreset_stats(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff420110;");
+	register uint64_t x0 asm("x0") = x;
+	register uint64_t x1 asm("x1") = y;
+	asm volatile (".inst 0xff420110;":: "r" (x0), "r" (x1));
 }
 
-inline void m5_work_begin(uint64_t x, uint64_t y)
+static __attribute__((optimize("O0"))) void m5_work_begin(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff5a0110;");
+	register uint64_t x0 asm("x0") = x;
+	register uint64_t x1 asm("x1") = y;
+	asm volatile (".inst 0xff5a0110;":: "r" (x0), "r" (x1));
 }
 
-inline void m5_work_end(uint64_t x, uint64_t y)
+static __attribute__((optimize("O0"))) void m5_work_end(uint64_t x, uint64_t y)
 {
-	asm (".inst 0xff5b0110;");
+	register uint64_t x0 asm("x0") = x;
+	register uint64_t x1 asm("x1") = y;
+	asm volatile (".inst 0xff5b0110;":: "r" (x0), "r" (x1));
 }
-
 #else
 void m5_checkpoint(uint64_t x, uint64_t y) {}
 void m5_exit(uint64_t x) {}
+void m5_reset_stats(uint64_t x, uint64_t y) {}
 void m5_dumpreset_stats(uint64_t x, uint64_t y) {}
 void m5_dump_stats(uint64_t x, uint64_t y) {}
 void m5_work_begin(uint64_t x, uint64_t y) {}
@@ -141,10 +152,16 @@ inline int env2int(const char *name)
 
 #define MARKER_START \
 	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
-		if(_GEM5_MARKER & GEM5_CHCK) \
+		if(_GEM5_MARKER & GEM5_CHCK) { \
+			if(_GEM5_MARKER & GEM5_EXIT) \
+				m5_exit(5); \
 			m5_checkpoint(_GEM5_CHCK_DELAY,_GEM5_CHCK_PERIOD); \
-		if(_GEM5_MARKER & GEM5_STAT) \
-			m5_dumpreset_stats(_GEM5_STAT_DELAY,_GEM5_STAT_PERIOD); \
+		if(_GEM5_MARKER & GEM5_STAT) {
+			if(_GEM5_STAT_DELAY||_GEM5_STAT_PERIOD)
+				m5_dumpreset_stats(_GEM5_STAT_DELAY,_GEM5_STAT_PERIOD); \
+			else
+				m5_reset_stats(0,0);
+		}
 	}
 #define MARKER_STOP \
 	if((_ARM_MARKER > 0)&&(_GEM5_MARKER > 0)) { \
