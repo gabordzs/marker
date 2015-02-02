@@ -168,11 +168,11 @@ inline int env2int(const char *name)
 		if(_GEM5_MARKER & GEM5_CHCK) m5_checkpoint(0,0); \
 	}
 #define MARKER_BEGIN(x, y) \
-	if(_GEM5_MARKER > GEM5_WORK) { \
+	if(_GEM5_MARKER & GEM5_WORK) { \
 		m5_work_begin(x,y); \
 	}
 #define MARKER_END(x, y) \
-	if(_GEM5_MARKER > GEM5_WORK) { \
+	if(_GEM5_MARKER & GEM5_WORK) { \
 		m5_work_end(x,y); \
 	}
 #define MARKER_INFO(x,y) \
