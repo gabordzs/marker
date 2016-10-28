@@ -56,9 +56,33 @@ extern "C" {
 #ifdef ARM_MARKERS
 #include <marker.h>
 #else /* ARM_MARKERS */
-#define MARKER_INIT
-#define MARKER_START(myrank)
-#define MARKER_STOP(myrank)
+#include <stdio.h>
+#include <time.h>
+
+struct timespec arm_marker_t0, arm_marker_t1, arm_marker_t2;
+
+#define MARKER_INIT { \
+  if (clock_gettime(CLOCK_MONOTONIC_RAW, &arm_marker_t0) != 0) \
+    fprintf(stderr, "(W) clock_gettime() failed in MARKET_INIT\n"); \
+}
+
+#define MARKER_START(myrank) { \
+  if (myrank == 0) { \
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &arm_marker_t1) != 0) \
+      fprintf(stderr, "(W) clock_gettime() failed in MARKET_START\n"); \
+  } \
+}
+
+#define MARKER_STOP(myrank) { \
+  if (myrank == 0) { \
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &arm_marker_t2) != 0) \
+      fprintf(stderr, "(W) clock_gettime() failed in MARKET_STOP\n"); \
+    fprintf(stderr, "(I) MARKER init-to-stop time: %12.6f(s)\n(I) MARKER start-to-stop time:%12.6f(s)\n", \
+	    (arm_marker_t2.tv_sec + 1e-9 * arm_marker_t2.tv_nsec) - (arm_marker_t0.tv_sec + 1e-9 * arm_marker_t0.tv_nsec), \
+            (arm_marker_t2.tv_sec + 1e-9 * arm_marker_t2.tv_nsec) - (arm_marker_t1.tv_sec + 1e-9 * arm_marker_t1.tv_nsec)); \
+  } \
+}
+
 #define MARKER_BEGIN(id,thread)
 #define MARKER_END(id,thread)
 #define MARKER_INFO(level,msg)
