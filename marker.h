@@ -95,6 +95,13 @@ static __attribute__((optimize("O0"))) void m5_reset_stats(uint64_t x, uint64_t 
 	asm volatile (".inst 0xff400110;":: "r" (x0), "r" (x1));
 }
 
+static __attribute__((optimize("O0"))) void m5_dump_stats(uint64_t x, uint64_t y)
+{
+	register uint64_t x0 asm("x0") = x;
+	register uint64_t x1 asm("x1") = y;
+	asm volatile (".inst 0xff410110;":: "r" (x0), "r" (x1));
+}
+
 static __attribute__((optimize("O0"))) void m5_dumpreset_stats(uint64_t x, uint64_t y)
 {
 	register uint64_t x0 asm("x0") = x;
