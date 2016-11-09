@@ -59,6 +59,30 @@ extern "C" {
 #include <stdio.h>
 #include <time.h>
 
+#ifdef MARKER_HEAP_PROFILE
+#include </usr/include/gperftools/heap-profiler.h>
+
+#define MARKER_HEAPPROF_START(myrank) { \
+    if (!IsHeapProfilerRunning()) { \
+      char fn_prefix[32]; \
+      snprintf(fn_prefix, 32, "rank-%d", myrank); \
+      HeapProfilerStart(fn_prefix); \
+    } \
+}
+
+#define MARKER_HEAPPROF_DUMP(reason) { \
+    HeapProfilerDump(reason); \
+}
+
+#define MARKER_HEAPPROF_STOP { \
+    HeapProfilerStop(); \
+}
+#else
+#define MARKER_HEAPPROF_START(myrank)
+#define MARKER_HEAPPROF_DUMP(reason)
+#define MARKER_HEAPPROF_STOP
+#endif /* MARKER_HEAP_PROFILE */
+
 struct timespec arm_marker_t0, arm_marker_t1, arm_marker_t2;
 
 #define MARKER_INIT { \
@@ -71,6 +95,8 @@ struct timespec arm_marker_t0, arm_marker_t1, arm_marker_t2;
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &arm_marker_t1) != 0) \
       fprintf(stderr, "(W) clock_gettime() failed in MARKET_START\n"); \
   } \
+  MARKER_HEAPPROF_START(myrank); \
+  MARKER_HEAPPROF_DUMP("MARKER_START"); \
 }
 
 #define MARKER_STOP(myrank) { \
@@ -81,6 +107,8 @@ struct timespec arm_marker_t0, arm_marker_t1, arm_marker_t2;
 	    (arm_marker_t2.tv_sec + 1e-9 * arm_marker_t2.tv_nsec) - (arm_marker_t0.tv_sec + 1e-9 * arm_marker_t0.tv_nsec), \
             (arm_marker_t2.tv_sec + 1e-9 * arm_marker_t2.tv_nsec) - (arm_marker_t1.tv_sec + 1e-9 * arm_marker_t1.tv_nsec)); \
   } \
+  MARKER_HEAPPROF_DUMP("MARKER_STOP"); \
+  MARKER_HEAPPROF_STOP; \
 }
 
 #define MARKER_BEGIN(id,thread)
